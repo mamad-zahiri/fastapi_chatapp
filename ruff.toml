@@ -1,0 +1,69 @@
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+line-length = 100
+indent-width = 4
+target-version = "py312"
+fixable = [
+    "F401",   # Remove unused imports.
+    "RUF100", # Remove unused noqa comments.
+    "I",      # Format imports
+]
+ignore = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "F841",
+    "RUF012",
+]
+
+[lint]
+select = ["B", "E4", "E7", "E9", "F", "G", "I", "LOG", "N", "RUF", "UP", "W"]
+
+[lint.per-file-ignores]
+"__init__.py" = ["E402"]
+"**/{tests,docs,tools}/*" = ["E402"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false # Like Black, respect magic trailing commas.
+line-ending = "auto"              # Like Black, automatically detect the appropriate line ending.
+docstring-code-format = true
+docstring-code-line-length = 80
+
+[pydocstyle]
+convention = "google"
+
+[mccabe]
+max-complexity = 10 # Unlike Flake8, default to a complexity level of 10.
