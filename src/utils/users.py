@@ -1,6 +1,8 @@
+from passlib.context import CryptContext
 from pymongo.results import InsertOneResult
 
 from src.db.connection import get_collection
+from src.users.models import User
 
 
 async def user_exists(email: str) -> bool:
@@ -13,17 +15,14 @@ async def user_exists(email: str) -> bool:
     return True
 
 
-async def create_user(
-    email: str,
-    password: str,
-    first_name: str | None = None,
-    last_name: str | None = None,
-) -> InsertOneResult:
-    data = dict(
-        email=email,
-        password=password,
-        first_name=first_name or "",
-        last_name=last_name or "",
-    )
+async def create_user(user: User) -> InsertOneResult:
     collection = get_collection("user")
-    return await collection.insert_one(data)
+    return await collection.insert_one(user.model_dump())
+    return await collection.insert_one(user.model_dump_json())
+
+
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_password(password: str) -> str:
+    return password_context.hash(password)
