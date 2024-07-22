@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, SecretStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class User(BaseModel):
@@ -8,5 +8,5 @@ class User(BaseModel):
     last_name: str
     email: EmailStr
     email_verified: bool
-    password: SecretStr
+    password: str = Field(repr=False)
     last_seen: datetime
