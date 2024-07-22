@@ -2,8 +2,8 @@ from datetime import datetime
 
 from fastapi import APIRouter
 
-from src.auth.schemas import UserSignup
-from src.auth.services import create_user_service
+from src.auth.schemas import UserLogin, UserSignup
+from src.auth.services import create_user_service, obtain_pair_token_service
 from src.users.models import User
 
 router = APIRouter()
@@ -20,3 +20,8 @@ async def signup(user: UserSignup):
         last_seen=datetime.now(),
     )
     await create_user_service(user)
+
+
+@router.post("/token")
+async def obtain_pair_token(user: UserLogin) -> dict[str, str]:
+    return await obtain_pair_token_service(user)
