@@ -9,3 +9,4 @@ app.add_event_handler("startup", init_client)
 app.add_event_handler("startup", init_db)
 app.add_event_handler("shutdown", close_connection)
 
+app.include_router(auth_router, prefix="/auth")
