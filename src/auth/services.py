@@ -13,5 +13,5 @@ async def create_user_service(user: UserSignup) -> User:
             detail="User with this email already exist",
         )
 
-    user.password = user_util.hash_password(user.password.get_secret_value())
+    user.password = user_util.hash_password(user.password)
     await user_util.create_user(user)

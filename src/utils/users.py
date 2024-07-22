@@ -18,7 +18,6 @@ async def user_exists(email: str) -> bool:
 async def create_user(user: User) -> InsertOneResult:
     collection = get_collection("user")
     return await collection.insert_one(user.model_dump())
-    return await collection.insert_one(user.model_dump_json())
 
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

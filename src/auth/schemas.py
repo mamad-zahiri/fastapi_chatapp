@@ -1,8 +1,8 @@
-from pydantic import BaseModel, EmailStr, SecretStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserSignup(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
-    password: SecretStr
+    password: str = Field(repr=False)
