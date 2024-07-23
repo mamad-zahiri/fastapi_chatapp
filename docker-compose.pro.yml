@@ -1,0 +1,40 @@
+---
+services:
+  database:
+    image: mongodb/mongodb-community-server:5.0-ubuntu2004
+    restart: always
+    ports:
+      - 27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: my_user
+      MONGO_INITDB_ROOT_PASSWORD: my_safe_password
+    networks:
+      - database
+  webserver:
+    image: nginx:stable-alpine3.19
+    ports:
+      - '80:80'
+      - '443:443'
+    networks:
+      - backend
+      - host
+  backend:
+    depends_on:
+      - database
+    build:
+      context: .
+    ports:
+      - 8080
+    networks:
+      - database
+      - backend
+networks:
+  database:
+    name: MongoDB
+    internal: true
+  backend:
+    name: Backend
+    internal: true
+  host:
+    name: Host
+    internal: false
