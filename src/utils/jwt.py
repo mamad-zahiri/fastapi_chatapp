@@ -25,7 +25,7 @@ def decode_jwt(token: str, secret_key: str, algorithm: str) -> None | dict[str, 
 def token_expired(decoded_token: dict[str, str | int]) -> bool:
     expires_at = datetime.fromtimestamp(decoded_token["expires"])
 
-    return expires_at >= datetime.now()
+    return expires_at <= datetime.now()
 
 
 def generate_access_token(payload: dict[str, str]) -> str:
