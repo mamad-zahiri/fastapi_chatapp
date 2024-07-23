@@ -1,0 +1,48 @@
+#!/usr/bin/bash
+
+case $1 in
+"dev")
+    compose_file="docker-compose.dev.yml"
+    ;;
+"")
+    docker compose -f docker-compose.dev.yml up -d --build
+    ;;
+*)
+    cat <<EOF
+! wrong usage
+
+use like this:
+    ./run <mode> <command> [build]
+
+available <mode>s:
+    dev         select development compose file
+    pro         select production compose file
+
+available <command>s:
+    up          docker compose up
+    up build    docker compose up --build
+    down        docker compose down
+
+NOTE: all the commands run in detach mode
+    e.g: docker compose up -d
+EOF
+
+    exit 1
+    ;;
+esac
+
+case $2 in
+"up")
+    case $3 in
+    "build")
+        docker compose -f $compose_file up -d --build
+        ;;
+    "")
+        docker compose -f $compose_file up -d
+        ;;
+    esac
+    ;;
+"down")
+    docker compose -f $compose_file down
+    ;;
+esac
