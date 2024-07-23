@@ -85,3 +85,17 @@ def verify_token_service(token: str) -> bool:
         return False
 
     return True
+
+
+async def refresh_token_service(token: str) -> dict[str, str] | None:
+    decoded_token = jwt_util.decode_jwt(
+        token,
+        settings.jwt_refresh_secret_key,
+        settings.jwt_algorithm,
+    )
+
+    if decoded_token is None or jwt_util.token_expired(decoded_token):
+        return None
+
+    user = await user_util.find_user(decoded_token["email"])
+    return generate_pair_token(user)

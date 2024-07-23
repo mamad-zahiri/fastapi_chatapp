@@ -3,12 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter
 
 from src.auth.schemas import UserLogin, UserSignup
-from src.auth.services import (
-    create_user_service,
-    generate_pair_token,
-    obtain_pair_token_service,
-    verify_token_service,
-)
+from src.auth.services import create_user_service, generate_pair_token, obtain_pair_token_service, verify_token_service, refresh_token_service
 from src.users.models import User
 
 router = APIRouter()
@@ -39,3 +34,13 @@ def verify_token(token: str) -> str:
         return "valid"
     else:
         return "invalid"
+
+
+@router.get("/token/refresh")
+async def refresh_token(token: str) -> dict[str, str] | str:
+    pair_token = await refresh_token_service(token)
+
+    if pair_token:
+        return pair_token
+
+    return "invalid refresh token"
