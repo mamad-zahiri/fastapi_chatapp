@@ -22,6 +22,9 @@ services:
     networks:
       - database
       - backend
+    volumes:
+      - .:/app
+    command: ["uvicorn", "--port", "8080", "--host", "0.0.0.0", "src.main:app", "--reload"]
 networks:
   database:
     name: mongodb
