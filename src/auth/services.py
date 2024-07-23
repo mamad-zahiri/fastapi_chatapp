@@ -3,6 +3,7 @@ from fastapi.exceptions import HTTPException
 
 from src.auth.schemas import UserLogin, UserSignup
 from src.db.connection import get_collection
+from src.settings import settings
 from src.users.models import User
 from src.utils import jwt as jwt_util
 from src.utils import users as user_util
@@ -70,3 +71,17 @@ def generate_pair_token(user: User) -> dict[str, str]:
         "access_token": create_access_token(user),
         "refresh_token": create_refresh_token(user),
     }
+
+
+def verify_token_service(token: str) -> bool:
+    decoded_token = jwt_util.decode_jwt(
+        token,
+        settings.jwt_access_secret_key,
+        settings.jwt_algorithm,
+    )
+    print("verify", decoded_token)
+
+    if decoded_token is None or jwt_util.token_expired(decoded_token):
+        return False
+
+    return True

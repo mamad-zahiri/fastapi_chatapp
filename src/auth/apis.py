@@ -3,7 +3,12 @@ from datetime import datetime
 from fastapi import APIRouter
 
 from src.auth.schemas import UserLogin, UserSignup
-from src.auth.services import create_user_service, generate_pair_token, obtain_pair_token_service
+from src.auth.services import (
+    create_user_service,
+    generate_pair_token,
+    obtain_pair_token_service,
+    verify_token_service,
+)
 from src.users.models import User
 
 router = APIRouter()
@@ -26,3 +31,11 @@ async def signup(user: UserSignup):
 @router.post("/token")
 async def obtain_pair_token(user: UserLogin) -> dict[str, str]:
     return await obtain_pair_token_service(user)
+
+
+@router.post("/token/verify")
+def verify_token(token: str) -> str:
+    if verify_token_service(token):
+        return "valid"
+    else:
+        return "invalid"
