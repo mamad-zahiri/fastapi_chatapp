@@ -79,7 +79,6 @@ def verify_token_service(token: str) -> bool:
         settings.jwt_access_secret_key,
         settings.jwt_algorithm,
     )
-    print("verify", decoded_token)
 
     if decoded_token is None or jwt_util.token_expired(decoded_token):
         return False
