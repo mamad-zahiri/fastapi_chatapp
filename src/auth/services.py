@@ -2,6 +2,7 @@ from fastapi import status
 from fastapi.exceptions import HTTPException
 
 from src.auth.schemas import UserLogin, UserSignup
+from src.db.connection import get_collection
 from src.users.models import User
 from src.utils import jwt as jwt_util
 from src.utils import users as user_util
@@ -15,7 +16,18 @@ async def create_user_service(user: UserSignup) -> User:
         )
 
     user.password = user_util.hash_password(user.password)
-    await user_util.create_user(user)
+    result = await user_util.create_user(user)
+
+    new_user = await get_collection("user").find_one({"_id": result.inserted_id})
+    return User(
+        id=str(result.inserted_id),
+        first_name=new_user["first_name"],
+        last_name=new_user["last_name"],
+        password=new_user["password"],
+        email=new_user["email"],
+        email_verified=new_user["email_verified"],
+        last_seen=new_user["last_seen"],
+    )
 
 
 async def obtain_pair_token_service(user: UserLogin) -> User:

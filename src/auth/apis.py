@@ -19,9 +19,8 @@ async def signup(user: UserSignup):
         email_verified=False,
         last_seen=datetime.now(),
     )
-    await create_user_service(user)
-
-    return generate_pair_token(user.email, user.password)
+    new_user = await create_user_service(user)
+    return generate_pair_token(new_user)
 
 
 @router.post("/token")

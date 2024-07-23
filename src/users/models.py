@@ -4,6 +4,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class User(BaseModel):
+    id: str = None
     first_name: str
     last_name: str
     email: EmailStr
