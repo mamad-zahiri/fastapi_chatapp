@@ -17,6 +17,7 @@ pydantic-settings = "^2.3.4"
 motor = "^3.5.1"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-socketio = "^5.11.3"
+beanie = "^1.26.0"
 
 
 [build-system]
