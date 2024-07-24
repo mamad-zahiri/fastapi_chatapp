@@ -22,29 +22,7 @@ async def find_user(email: str) -> User | None:
 
 
 async def get_all_users() -> list[User]:
-    collection = get_collection("user")
-    restult = await collection.find().to_list(2)
-
-    if restult is None:
-        return None
-
-    users = []
-
-    async for user in restult:
-        
-        u = User(
-            id=str(user["_id"]),
-            first_name=user["first_name"],
-            last_name=user["last_name"],
-            email=user["email"],
-            password=user["password"],
-            last_seen=user["last_seen"],
-            email_verified=user["email_verified"],
-        )
-
-        users.append(u)
-
-    return users
+    return await User.find().to_list()
 
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
