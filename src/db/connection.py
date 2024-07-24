@@ -1,9 +1,10 @@
 import logging
-import sys
 
+from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
 
 from src.settings import settings
+from src.users.models import User
 
 client: AsyncIOMotorClient | None = None
 db: AsyncIOMotorDatabase | None = None
@@ -18,7 +19,7 @@ def get_collection(name: str) -> AsyncIOMotorCollection:
     return db.get_collection(name)
 
 
-def init_client():
+async def init_client():
     global client
 
     client = AsyncIOMotorClient(
@@ -30,6 +31,9 @@ def init_client():
         minPoolSize=settings.db_min_connection_count,
         uuidRepresentation=settings.db_uuid_representation,
     )
+
+    # Initialize beanie with the Sample document class and a database
+    await init_beanie(database=client.db_name, document_models=[User])
 
 
 def init_db():

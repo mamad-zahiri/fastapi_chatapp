@@ -1,8 +1,9 @@
+from datetime import datetime
+
 from fastapi import status
 from fastapi.exceptions import HTTPException
 
 from src.auth.schemas import UserLogin, UserSignup
-from src.db.connection import get_collection
 from src.settings import settings
 from src.users.models import User
 from src.utils import jwt as jwt_util
@@ -10,25 +11,25 @@ from src.utils import users as user_util
 
 
 async def create_user_service(user: UserSignup) -> User:
-    if await user_util.user_exists(user.email):
+    if await User.find_one(User.email == user.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exist",
         )
 
-    user.password = user_util.hash_password(user.password)
-    result = await user_util.create_user(user)
-
-    new_user = await get_collection("user").find_one({"_id": result.inserted_id})
-    return User(
-        id=str(result.inserted_id),
-        first_name=new_user["first_name"],
-        last_name=new_user["last_name"],
-        password=new_user["password"],
-        email=new_user["email"],
-        email_verified=new_user["email_verified"],
-        last_seen=new_user["last_seen"],
+    user = User(
+        first_name=user.first_name,
+        last_name=user.last_name,
+        password=user.password,
+        email=user.email,
+        email_verified=False,
+        last_seen=datetime.now(),
     )
+
+    user.password = user_util.hash_password(user.password)
+    new_user = await user.insert()
+
+    return new_user
 
 
 async def obtain_pair_token_service(user: UserLogin) -> User:
@@ -37,7 +38,7 @@ async def obtain_pair_token_service(user: UserLogin) -> User:
         detail="Incorrect email or password",
     )
 
-    fetched_user = await user_util.find_user(user.email)
+    fetched_user = await User.find_one(User.email == user.email)
 
     if fetched_user is None:
         raise exp
