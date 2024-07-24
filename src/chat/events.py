@@ -5,7 +5,7 @@ from src.auth.services import verify_token_service
 from src.settings import settings
 from src.utils.chat import token_provided
 from src.utils.jwt import decode_jwt
-from src.utils.users import find_user
+from src.utils.users import find_user, get_all_users
 
 sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="asgi")
 
@@ -52,3 +52,23 @@ async def disconnect(sid):
         pass
 
     await sio.emit("/broadcast/user-diconnect", data=sid)
+
+
+@sio.on("/system/list-users")
+async def system_list_users(sid):
+    # TODO 1: refactor and clean this function
+    # TODO 2: we need a logic to select which users to send
+    users = await get_all_users()
+
+    def dump(u):
+        return u.model_dump(exclude=["password", "email_verified"], mode="json")
+
+    users = list(map(dump, users))
+
+    return users
+
+
+@sio.on("/system/list-online-users")
+async def system_list_online_users(sid):
+    # TODO: refactor and clean this function
+    return online_users
