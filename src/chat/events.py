@@ -126,3 +126,47 @@ async def private_chat(sid, env):
     await receiver.save()
 
     return to_send
+
+
+@sio.on("/private/list-new-chats")
+async def private_list_new_chats(sid, env):
+    # TODO: refactor and clean this function
+    decoded_token = decode_jwt(
+        env["token"],
+        settings.jwt_access_secret_key,
+        settings.jwt_algorithm,
+    )
+
+    sender = await User.find_one(User.email == decoded_token["email"])
+
+    # TODO:
+    #   for long list of chats we must paginate the query
+    new_chats = []
+
+    for chat in sender.chats:
+        if not chat.seen:
+            new_chats.append(chat.model_dump(exclude=["seen"]))
+
+    return new_chats
+
+
+@sio.on("/private/list-chats")
+async def private_list_chats(sid, env):
+    # TODO: refactor and clean this function
+    decoded_token = decode_jwt(
+        env["token"],
+        settings.jwt_access_secret_key,
+        settings.jwt_algorithm,
+    )
+
+    sender = await User.find_one(User.email == decoded_token["email"])
+
+    # TODO:
+    #   for long list of chats we must paginate the query
+    old_chats = []
+
+    for chat in sender.chats:
+        if chat.seen:
+            old_chats.append(chat.model_dump(exclude=["seen"]))
+
+    return old_chats
