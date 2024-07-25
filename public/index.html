@@ -4,13 +4,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/bootstrap.css">
     <title>Chat Room</title>
 </head>
 
 <body>
-    <ul id="messages">
-        <!-- put messages here -->
-    </ul>
+    <div class="container mt-4">
+        <div class="row my-4 bg-">
+            <div class="input-group mb-3">
+                <input type="text" id="token" class="form-control border-warning" placeholder="token">
+                <button class="btn btn-warning" onclick="connect()">Connect</button>
+            </div>
+
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-6 bg-light h-auto">
+                <form class="">
+                    <div class="mb-3">
+                        <label for="to" class="form-label">Receiver email:</label>
+                        <input type="text" class="form-control" id="to" placeholder="email@example.com">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="msg" class="form-label">Your message:</label>
+                        <textarea type="text" class="form-control" id="msg" placeholder="your message"></textarea>
+                    </div>
+                    <input type="button" class="btn btn-primary mb-4" name="send" id="send" value="Send"
+                        onclick="send_message()">
+                </form>
+            </div>
+
+            <div class="col-6">
+                <ul id="message_list">
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-3">
+                <button class="btn btn-primary mb-4" onclick="list_users()">List users</button>
+                <ul id="user_list"></ul>
+            </div>
+
+            <div class="col-3">
+                <button class="btn btn-primary mb-4" onclick="list_online_users()">List online users</button>
+                <ul id="online_user_list"></ul>
+            </div>
+
+            <div class="col-3">
+                <button class="btn btn-primary mb-4" onclick="list_groups()">List groups</button>
+                <ul id="group_list"></ul>
+            </div>
+        </div>
+    </div>
+
 
     <script src="/static/socket.io.js"></script>
     <script src="/static/chat_client.js"></script>
