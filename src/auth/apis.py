@@ -31,7 +31,7 @@ def verify_token(token: str) -> str:
         return "invalid"
 
 
-@router.get("/token/refresh")
+@router.post("/token/refresh")
 async def refresh_token(token: str) -> dict[str, str] | str:
     pair_token = await refresh_token_service(token)
 
