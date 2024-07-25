@@ -37,7 +37,15 @@ async def connect(sid, e, auth):
     if user is None:
         raise ConnectionRefusedError()
 
-    user = user.model_dump(mode="json", exclude=["password", "email_verified"])
+    user = user.model_dump(
+        mode="json",
+        exclude=[
+            "password",
+            "email_verified",
+            "chats",
+            "groups",
+        ],
+    )
     online_users.update({sid: user})
 
     await sio.emit("/auth/verify", "verified", to=sid)
@@ -61,7 +69,15 @@ async def system_list_users(sid):
     users = await get_all_users()
 
     def dump(u):
-        return u.model_dump(exclude=["password", "email_verified"], mode="json")
+        return u.model_dump(
+            exclude=[
+                "password",
+                "email_verified",
+                "chats",
+                "groups",
+            ],
+            mode="json",
+        )
 
     users = list(map(dump, users))
 
