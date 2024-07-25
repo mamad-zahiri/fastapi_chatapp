@@ -20,12 +20,10 @@ online_users = {}
 
 
 async def get_receiver_and_status(email: str) -> tuple[User | dict, bool]:
-    user = online_users.get(email)
+    sid = online_users.get(email)
+    user = await User.find_one(User.email == email)
 
-    if user is None:
-        return await User.find_one(User.email == email), False
-
-    return user, True
+    return user, sid
 
 
 @sio.on("connect")
@@ -50,16 +48,7 @@ async def connect(sid, e, auth):
     if user is None:
         raise ConnectionRefusedError()
 
-    user = user.model_dump(
-        mode="json",
-        exclude=[
-            "password",
-            "email_verified",
-            "chats",
-            "groups",
-        ],
-    )
-    online_users.update({sid: user})
+    online_users.update({user.email: sid})
 
     await sio.emit("/auth/verify", "verified", to=sid)
 
@@ -67,12 +56,12 @@ async def connect(sid, e, auth):
 @sio.on("disconnect")
 async def disconnect(sid):
     # TODO: refactor and clean this function
-    try:
-        online_users.pop(sid)
-    except KeyError as e:
-        pass
+    for key in online_users:
+        if online_users[key] == sid:
+            online_users.pop(key)
+            break
 
-    await sio.emit("/broadcast/user-diconnect", data=sid)
+    await sio.emit("/broadcast/user-disconnect", data=key)
 
 
 @sio.on("/system/list-users")
@@ -100,11 +89,12 @@ async def system_list_users(sid):
 @sio.on("/system/list-online-users")
 async def system_list_online_users(sid):
     # TODO: refactor and clean this function
-    return online_users
+    return list(online_users.keys())
 
 
 @sio.on("/private/chat")
 async def private_chat(sid, env):
+    # TODO: refactor and clean this function
     decoded_token = decode_jwt(
         env["token"],
         settings.jwt_access_secret_key,
@@ -112,7 +102,7 @@ async def private_chat(sid, env):
     )
     sender = await User.find_one(User.email == decoded_token["email"])
 
-    receiver, is_online = await get_receiver_and_status(env["receiver"])
+    receiver, sid = await get_receiver_and_status(env["receiver"])
 
     if receiver is None:
         return "invalid receiver"
@@ -121,13 +111,18 @@ async def private_chat(sid, env):
         timestamp=datetime.now(),
         message=env["message"],
         file="",
-        sender=sender,
+        sender=sender.email,
     )
+    to_send = payload.model_dump(exclude=["id"])
 
-    if is_online:
-        await sio.emit("/private/chat", payload.model_dump_json(exclude=["sender"]))
+    if sid is not None:
+        await sio.emit(
+            "/private/chat",
+            to_send,
+            to=sid,
+        )
 
     receiver.chats.append(payload)
     await receiver.save()
 
-    return payload.model_dump_json(exclude=["sender"])
+    return to_send
