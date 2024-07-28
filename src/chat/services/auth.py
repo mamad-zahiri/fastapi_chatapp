@@ -1,4 +1,5 @@
 from pydantic import EmailStr
+from socketio import AsyncServer
 from socketio.exceptions import ConnectionRefusedError
 
 from src.auth.services import verify_token_service
@@ -9,7 +10,7 @@ from src.utils.jwt import decode_jwt
 from src.utils.users import find_user
 
 
-async def connection_service(sid: str, auth: dict[str, str]):
+async def connection_service(sio: AsyncServer, sid: str, auth: dict[str, str]):
     if not token_provided(auth):
         raise ConnectionRefusedError()
 
@@ -29,8 +30,12 @@ async def connection_service(sid: str, auth: dict[str, str]):
     if user is None:
         raise ConnectionRefusedError()
 
+    # this email used when disconnect so we can update last_seen
+    await sio.save_session(sid, {"email": user.email})
+
     online_users.add(user.email, sid)
 
 
-async def disconnection_service(sid) -> EmailStr:
-    return online_users.pop(sid)
+async def disconnection_service(sio: AsyncServer, sid) -> EmailStr:
+    email = (await sio.get_session(sid)).get("email")
+    return email
