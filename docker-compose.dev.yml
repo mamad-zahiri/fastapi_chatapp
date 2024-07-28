@@ -11,24 +11,34 @@ services:
       MONGO_INITDB_ROOT_USERNAME: my_user
       MONGO_INITDB_ROOT_PASSWORD: my_safe_password
     networks:
-      - database
+      - unseen
   backend:
     depends_on:
       - database
+      - cache
     build:
       context: .
     ports:
       - 8080:8080
     networks:
-      - database
-      - backend
+      - unseen
+      - realworld
     volumes:
       - .:/app
     command: ["uvicorn", "--port", "8080", "--host", "0.0.0.0", "src.main:app", "--reload"]
+  cache:
+    container_name: cache
+    image: redis:7.2.5
+    volumes:
+      - ./volumes/redis/:/data
+    ports:
+      - 6379:6379
+    networks:
+      - unseen
 networks:
-  database:
-    name: mongodb
+  unseen:
+    name: Unseen
     internal: true
-  backend:
-    name: backend
+  realworld:
+    name: Real world
     internal: false
