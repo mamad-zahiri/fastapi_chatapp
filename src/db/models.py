@@ -28,6 +28,14 @@ class PrivateChat(UuidDocument):
     def serialize_timestamp(self, timestamp: datetime, _info=None):
         return str(timestamp)
 
+    @field_serializer("sender")
+    def serialize_sender(self, sender: Link["User"], _info=None):
+        return str(sender.email)
+
+    @field_serializer("receiver")
+    def serialize_receiver(self, receiver: Link["User"], _info=None):
+        return str(receiver.email)
+
 
 class GroupChat(UuidDocument):
     message: str = ""
