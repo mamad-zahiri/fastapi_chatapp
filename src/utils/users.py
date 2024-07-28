@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
 
-from src.users.models import User
+from src.db.models import User
 
 
 async def user_exists(email: str) -> bool:
