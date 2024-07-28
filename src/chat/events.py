@@ -27,13 +27,13 @@ async def get_receiver_and_status(email: str) -> tuple[User | dict, bool]:
 
 @sio.on("connect")
 async def connect(sid, e, auth):
-    await connection_service(sid, auth)
+    await connection_service(sio, sid, auth)
     await sio.emit("/auth/verify", "verified", to=sid)
 
 
 @sio.on("disconnect")
 async def disconnect(sid):
-    email = await disconnection_service(sid)
+    email = await disconnection_service(sio, sid)
     await sio.emit("/broadcast/user-disconnect", data=email)
 
 
