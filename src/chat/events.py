@@ -77,9 +77,10 @@ async def private_chat(sid, env):
     payload = PrivateChat(
         timestamp=datetime.now(),
         message=env["message"],
-        file="",
-        sender=sender.email,
+        sender=sender,
+        receiver=receiver,
     )
+
     to_send = payload.model_dump(exclude=["id"])
 
     if sid is not None:
@@ -89,8 +90,7 @@ async def private_chat(sid, env):
             to=sid,
         )
 
-    receiver.chats.append(payload)
-    await receiver.save()
+    await payload.save()
 
     return to_send
 
