@@ -2,11 +2,10 @@ from datetime import datetime
 
 import socketio
 
-from src.chat.models import PrivateChat
 from src.chat.services.auth import connection_service, disconnection_service
 from src.chat.services.clients import online_users
+from src.db.models import PrivateChat, User
 from src.settings import settings
-from src.users.models import User
 from src.utils.jwt import decode_jwt
 from src.utils.users import get_all_users
 
@@ -46,12 +45,7 @@ async def system_list_users(sid):
 
     def dump(u):
         return u.model_dump(
-            exclude=[
-                "password",
-                "email_verified",
-                "chats",
-                "groups",
-            ],
+            exclude=["password", "last_seen"],
             mode="json",
         )
 
