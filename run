@@ -22,6 +22,8 @@ available <command>s:
     up          docker compose up
     up build    docker compose up --build
     down        docker compose down
+    stop        docker compose stop
+    start        docker compose start
 
 NOTE: all the commands run in detach mode
     e.g: docker compose up -d
@@ -44,5 +46,11 @@ case $2 in
     ;;
 "down")
     docker compose -f $compose_file down
+    ;;
+"stop")
+    docker compose -f $compose_file stop
+    ;;
+"start")
+    docker compose -f $compose_file start
     ;;
 esac
