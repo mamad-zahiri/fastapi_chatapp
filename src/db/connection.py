@@ -3,9 +3,8 @@ import logging
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
 
-from src.chat.models import Group
+from src.db.models import Group, GroupChat, PrivateChat, User
 from src.settings import settings
-from src.users.models import User
 
 client: AsyncIOMotorClient | None = None
 db: AsyncIOMotorDatabase | None = None
@@ -36,7 +35,12 @@ async def init_client():
     # Initialize beanie with the Sample document class and a database
     await init_beanie(
         database=client.db_name,
-        document_models=[User, Group],
+        document_models=[
+            User,
+            Group,
+            PrivateChat,
+            GroupChat,
+        ],
     )
 
 
