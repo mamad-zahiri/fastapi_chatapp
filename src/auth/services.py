@@ -4,8 +4,8 @@ from fastapi import status
 from fastapi.exceptions import HTTPException
 
 from src.auth.schemas import UserLogin, UserSignup
+from src.db.models import User
 from src.settings import settings
-from src.users.models import User
 from src.utils import jwt as jwt_util
 from src.utils import users as user_util
 
@@ -22,7 +22,6 @@ async def create_user_service(user: UserSignup) -> User:
         last_name=user.last_name,
         password=user.password,
         email=user.email,
-        email_verified=False,
         last_seen=datetime.now(),
     )
 
