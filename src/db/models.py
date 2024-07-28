@@ -15,7 +15,7 @@ class UuidDocument(Document):
 
 class PrivateChat(UuidDocument):
     message: str = ""
-    file: AnyUrl = ""
+    file: AnyUrl | None = None
     sender: Link["User"]
     receiver: Link["User"]
     timestamp: datetime
@@ -31,7 +31,7 @@ class PrivateChat(UuidDocument):
 
 class GroupChat(UuidDocument):
     message: str = ""
-    file: AnyUrl = ""
+    file: AnyUrl | None = None
     sender: Link["User"]
     receiver: Link["Group"]
     timestamp: datetime
