@@ -10,7 +10,13 @@ from src.users.models import User
 from src.utils.jwt import decode_jwt
 from src.utils.users import get_all_users
 
-sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="asgi")
+redis_manager = socketio.AsyncRedisManager("redis://cache:6379")
+
+sio = socketio.AsyncServer(
+    cors_allowed_origins="*",
+    async_mode="asgi",
+    client_manager=redis_manager,
+)
 
 
 async def get_receiver_and_status(email: str) -> tuple[User | dict, bool]:
