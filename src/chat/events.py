@@ -184,3 +184,14 @@ async def group_join(sid, env):
 
     return "ok"
 
+
+@sio.on("/system/list-groups")
+async def system_list_groups(sid, env):
+    # TODO: refactor and clean this function
+    if not verify_token_service(env["token"]):
+        return "invalid token"
+
+    groups = await Group.find_all().to_list()
+
+    return list(map(lambda x: x.model_dump(), groups))
+
