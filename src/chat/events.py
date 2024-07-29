@@ -230,3 +230,30 @@ async def group_send_message(sid, env):
 
     return group_chat.model_dump()
 
+
+@sio.on("/group/get-messages")
+async def group_get_messages(sid, env):
+    # TODO: refactor and clean this function
+    if not verify_token_service(env["token"]):
+        return "invalid token"
+
+    decoded_token = decode_jwt(
+        env["token"],
+        settings.jwt_access_secret_key,
+        settings.jwt_algorithm,
+    )
+
+    user = await User.find_one(User.email == decoded_token["email"])
+    group = await Group.find_one(Group.name == env.get("group"))
+
+    if user is None or group is None:
+        return "user or group does not exist"
+
+    group_member = await GroupMember.find_one(GroupMember.group.id == group.id, GroupMember.member.id == user.id)
+
+    if group_member is None:
+        return f"user {user.email} is not a member of {group.name}"
+
+    group_messages = await GroupChat.find_many(GroupChat.receiver.id == group.id).to_list()
+
+    return list(map(lambda x: x.model_dump(), group_messages))
