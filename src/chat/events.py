@@ -104,17 +104,15 @@ async def private_list_new_chats(sid, env):
         settings.jwt_algorithm,
     )
 
-    sender = await User.find_one(User.email == decoded_token["email"])
+    receiver = await User.find_one(User.email == decoded_token["email"])
 
-    # TODO:
-    #   for long list of chats we must paginate the query
-    new_chats = []
+    new_chats = await PrivateChat.find_many(
+        PrivateChat.receiver.id == receiver.id,
+        PrivateChat.seen == False,
+        fetch_links=True,
+    ).to_list()
 
-    for chat in sender.chats:
-        if not chat.seen:
-            new_chats.append(chat.model_dump(exclude=["seen"]))
-
-    return new_chats
+    return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), new_chats))
 
 
 @sio.on("/private/list-chats")
@@ -126,14 +124,12 @@ async def private_list_chats(sid, env):
         settings.jwt_algorithm,
     )
 
-    sender = await User.find_one(User.email == decoded_token["email"])
+    receiver = await User.find_one(User.email == decoded_token["email"])
 
-    # TODO:
-    #   for long list of chats we must paginate the query
-    old_chats = []
+    old_chats = await PrivateChat.find_many(
+        PrivateChat.receiver.id == receiver.id,
+        PrivateChat.seen == True,
+        fetch_links=True,
+    ).to_list()
 
-    for chat in sender.chats:
-        if chat.seen:
-            old_chats.append(chat.model_dump(exclude=["seen"]))
-
-    return old_chats
+    return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), old_chats))
