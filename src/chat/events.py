@@ -258,6 +258,8 @@ async def group_send_message(sid, env):
 
     await group_chat.save()
 
+    await sio.emit("/group/send-message", data=group_chat.model_dump(), room=group.id)
+
     return group_chat.model_dump()
 
 
