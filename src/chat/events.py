@@ -5,7 +5,7 @@ import socketio
 from src.auth.services import verify_token_service
 from src.chat.services.auth import connection_service, disconnection_service
 from src.chat.services.clients import online_users
-from src.db.models import Group, PrivateChat, User
+from src.db.models import Group, GroupMember, PrivateChat, User
 from src.settings import settings
 from src.utils.jwt import decode_jwt
 from src.utils.users import get_all_users
@@ -150,4 +150,37 @@ async def system_add_groups(sid, env):
         return f"group {group.name} created"
 
     return f"group {group.name} already exists"
+
+
+@sio.on("/system/join-group")
+async def group_join(sid, env):
+    # TODO: refactor and clean this function
+    if not verify_token_service(env["token"]):
+        return "invalid token"
+
+    decoded_token = decode_jwt(
+        env["token"],
+        settings.jwt_access_secret_key,
+        settings.jwt_algorithm,
+    )
+
+    user = await User.find_one(User.email == decoded_token["email"])
+
+    group = await Group.find_one(Group.name == env.get("group"))
+
+    if group is None:
+        return "group does not exists"
+
+    group_member = await GroupMember.find_one(GroupMember.group.id == group.id, GroupMember.member.id == user.id)
+
+    if group_member is not None:
+        return f"you are already a member of {group.name}"
+
+    group_member = GroupMember(group=group, member=user)
+    await group_member.save()
+
+    await sio.enter_room(sid, group.id)
+    await sio.emit("/group", data=f"user {user.email} joined group", room=group.id)
+
+    return "ok"
 
