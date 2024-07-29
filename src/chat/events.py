@@ -185,6 +185,36 @@ async def group_join(sid, env):
     return "ok"
 
 
+@sio.on("/group/attach-group")
+async def group_attach_group(sid, env):
+    # TODO: refactor and clean this function
+    if not verify_token_service(env["token"]):
+        return "invalid token"
+
+    decoded_token = decode_jwt(
+        env["token"],
+        settings.jwt_access_secret_key,
+        settings.jwt_algorithm,
+    )
+
+    user = await User.find_one(User.email == decoded_token["email"])
+
+    group = await Group.find_one(Group.name == env.get("group"))
+
+    if group is None:
+        return "group does not exists"
+
+    group_member = await GroupMember.find_one(GroupMember.group.id == group.id, GroupMember.member.id == user.id)
+
+    if group_member is None:
+        return f"you are not member of {group.name}"
+
+    await sio.enter_room(sid, group.id)
+    await sio.emit("/group", data=f"user {user.email} is onlined", room=group.id)
+
+    return "ok"
+
+
 @sio.on("/system/list-groups")
 async def system_list_groups(sid, env):
     # TODO: refactor and clean this function
