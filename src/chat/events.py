@@ -5,7 +5,7 @@ import socketio
 from src.auth.services import verify_token_service
 from src.chat.services.auth import connection_service, disconnection_service
 from src.chat.services.clients import online_users
-from src.db.models import Group, GroupMember, PrivateChat, User
+from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
 from src.utils.jwt import decode_jwt
 from src.utils.users import get_all_users
@@ -194,4 +194,39 @@ async def system_list_groups(sid, env):
     groups = await Group.find_all().to_list()
 
     return list(map(lambda x: x.model_dump(), groups))
+
+
+@sio.on("/group/send-message")
+async def group_send_message(sid, env):
+    # TODO: refactor and clean this function
+    if not verify_token_service(env["token"]):
+        return "invalid token"
+
+    decoded_token = decode_jwt(
+        env["token"],
+        settings.jwt_access_secret_key,
+        settings.jwt_algorithm,
+    )
+
+    user = await User.find_one(User.email == decoded_token["email"])
+    group = await Group.find_one(Group.name == env.get("group"))
+
+    if user is None or group is None:
+        return "user or group does not exist"
+
+    group_member = await GroupMember.find_one(GroupMember.group.id == group.id, GroupMember.member.id == user.id)
+
+    if group_member is None:
+        return f"user {user.email} is not a member of {group.name}"
+
+    group_chat = GroupChat(
+        message=env.get("message"),
+        receiver=group,
+        sender=user,
+        timestamp=datetime.now(),
+    )
+
+    await group_chat.save()
+
+    return group_chat.model_dump()
 
