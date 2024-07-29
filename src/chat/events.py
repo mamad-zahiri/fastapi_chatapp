@@ -2,9 +2,10 @@ from datetime import datetime
 
 import socketio
 
+from src.auth.services import verify_token_service
 from src.chat.services.auth import connection_service, disconnection_service
 from src.chat.services.clients import online_users
-from src.db.models import PrivateChat, User
+from src.db.models import Group, PrivateChat, User
 from src.settings import settings
 from src.utils.jwt import decode_jwt
 from src.utils.users import get_all_users
@@ -133,3 +134,20 @@ async def private_list_chats(sid, env):
     ).to_list()
 
     return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), old_chats))
+
+
+@sio.on("/system/create-group")
+async def system_add_groups(sid, env):
+    # TODO: refactor and clean this function
+    if not verify_token_service(env["token"]):
+        return "invalid token"
+
+    group = await Group.find_one(Group.name == env.get("group"))
+
+    if group is None:
+        group = Group(name=env.get("group"))
+        await group.save()
+        return f"group {group.name} created"
+
+    return f"group {group.name} already exists"
+
