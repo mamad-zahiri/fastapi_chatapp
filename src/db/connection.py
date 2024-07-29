@@ -3,7 +3,7 @@ import logging
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
 
-from src.db.models import Group, GroupChat, PrivateChat, User
+from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
 
 client: AsyncIOMotorClient | None = None
@@ -40,6 +40,7 @@ async def init_client():
             Group,
             PrivateChat,
             GroupChat,
+            GroupMember,
         ],
     )
 

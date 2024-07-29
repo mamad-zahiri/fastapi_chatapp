@@ -60,6 +60,11 @@ class Group(UuidDocument):
         name = "groups"
 
 
+class GroupMember(UuidDocument):
+    group: Link["Group"]
+    member: Link["User"]
+
+
 class User(UuidDocument):
     first_name: str = ""
     last_name: str = ""
