@@ -12,6 +12,30 @@ cd fastapi_chatapp
 chmod +x run
 ```
 
+### production mode
+
+- on linux:
+
+  - to build services and images:
+
+    ```shell
+    ./run pro up build
+    ```
+
+    next times:
+
+  - to stop:
+
+    ```shell
+    ./run pro stop
+    ```
+
+  - to start:
+
+    ```shell
+    ./run pro start
+    ```
+
 ### development mode
 
 - on linux:
