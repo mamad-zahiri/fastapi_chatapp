@@ -52,12 +52,7 @@ async def system_list_online_users(sid):
 @sio.on("/private/chat")
 async def private_chat(sid, env):
     # TODO: refactor and clean this function
-    decoded_token = decode_jwt(
-        env["token"],
-        settings.jwt_access_secret_key,
-        settings.jwt_algorithm,
-    )
-    sender = await User.find_one(User.email == decoded_token["email"])
+    sender = await verify_user_service(env)
 
     receiver, sid = await get_receiver_and_status(env["receiver"])
 
