@@ -1,23 +1,31 @@
 from pydantic import EmailStr
+from redis import Redis
+
+from src.settings import settings
+
+redis = Redis(
+    host=settings.redis_host,
+    port=settings.redis_port,
+    decode_responses=True,
+)
 
 
 class OnlineUsers:
-    # TODO: use redis as cache server
-    #   It is not a good practice to save online users in dictionary. Instead
-    #   we could save them in a Redis Cache or something.
-    __online_users: dict[EmailStr, str] = {}
+    __redis_hash_set = "online_users"
 
     def all(self) -> dict[EmailStr, str]:
-        return self.__online_users
+        return redis.hgetall(self.__redis_hash_set)
 
     def get(self, email: EmailStr) -> str:
-        return self.__online_users.get(email)
+        return redis.hget(self.__redis_hash_set, email)
 
     def add(self, email: EmailStr, sid: str):
-        self.__online_users.update({email: sid})
+        redis.hset(self.__redis_hash_set, email, sid)
 
     def pop(self, email: EmailStr) -> EmailStr:
-        return self.__online_users.pop(email)
+        sid = redis.hget(self.__redis_hash_set, email)
+        redis.hdel(self.__redis_hash_set, email)
+        return sid
 
 
 online_users = OnlineUsers()
