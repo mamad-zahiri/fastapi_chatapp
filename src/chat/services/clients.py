@@ -16,10 +16,8 @@ class OnlineUsers:
     def add(self, email: EmailStr, sid: str):
         self.__online_users.update({email: sid})
 
-    def pop(self, sid) -> EmailStr:
-        for email, _sid in self.all().items():
-            if _sid == sid:
-                return self.__online_users.pop(email)
+    def pop(self, email: EmailStr) -> EmailStr:
+        return self.__online_users.pop(email)
 
 
 online_users = OnlineUsers()
