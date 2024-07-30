@@ -3,7 +3,7 @@ from datetime import datetime
 import socketio
 
 from src.auth.services import verify_token_service
-from src.chat.services.auth import connection_service, disconnection_service
+from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
 from src.chat.services.clients import online_users
 from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
@@ -100,13 +100,7 @@ async def private_chat(sid, env):
 @sio.on("/private/list-new-chats")
 async def private_list_new_chats(sid, env):
     # TODO: refactor and clean this function
-    decoded_token = decode_jwt(
-        env["token"],
-        settings.jwt_access_secret_key,
-        settings.jwt_algorithm,
-    )
-
-    receiver = await User.find_one(User.email == decoded_token["email"])
+    receiver = await verify_user_service(env)
 
     new_chats = await PrivateChat.find_many(
         PrivateChat.receiver.id == receiver.id,
@@ -120,13 +114,7 @@ async def private_list_new_chats(sid, env):
 @sio.on("/private/list-chats")
 async def private_list_chats(sid, env):
     # TODO: refactor and clean this function
-    decoded_token = decode_jwt(
-        env["token"],
-        settings.jwt_access_secret_key,
-        settings.jwt_algorithm,
-    )
-
-    receiver = await User.find_one(User.email == decoded_token["email"])
+    receiver = await verify_user_service(env)
 
     old_chats = await PrivateChat.find_many(
         PrivateChat.receiver.id == receiver.id,
@@ -140,7 +128,9 @@ async def private_list_chats(sid, env):
 @sio.on("/system/create-group")
 async def system_add_groups(sid, env):
     # TODO: refactor and clean this function
-    if not verify_token_service(env["token"]):
+    user = await verify_user_service(env)
+
+    if user is None:
         return "invalid token"
 
     group = await Group.find_one(Group.name == env.get("group"))
@@ -156,16 +146,10 @@ async def system_add_groups(sid, env):
 @sio.on("/system/join-group")
 async def group_join(sid, env):
     # TODO: refactor and clean this function
-    if not verify_token_service(env["token"]):
+    user = await verify_user_service(env)
+
+    if user is None:
         return "invalid token"
-
-    decoded_token = decode_jwt(
-        env["token"],
-        settings.jwt_access_secret_key,
-        settings.jwt_algorithm,
-    )
-
-    user = await User.find_one(User.email == decoded_token["email"])
 
     group = await Group.find_one(Group.name == env.get("group"))
 
@@ -189,16 +173,10 @@ async def group_join(sid, env):
 @sio.on("/group/attach-group")
 async def group_attach_group(sid, env):
     # TODO: refactor and clean this function
-    if not verify_token_service(env["token"]):
+    user = await verify_user_service(env)
+
+    if user is None:
         return "invalid token"
-
-    decoded_token = decode_jwt(
-        env["token"],
-        settings.jwt_access_secret_key,
-        settings.jwt_algorithm,
-    )
-
-    user = await User.find_one(User.email == decoded_token["email"])
 
     group = await Group.find_one(Group.name == env.get("group"))
 
@@ -270,13 +248,7 @@ async def group_get_messages(sid, env):
     if not verify_token_service(env["token"]):
         return "invalid token"
 
-    decoded_token = decode_jwt(
-        env["token"],
-        settings.jwt_access_secret_key,
-        settings.jwt_algorithm,
-    )
-
-    user = await User.find_one(User.email == decoded_token["email"])
+    user = await verify_user_service(env)
     group = await Group.find_one(Group.name == env.get("group"))
 
     if user is None or group is None:
