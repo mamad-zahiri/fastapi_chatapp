@@ -4,6 +4,9 @@ case $1 in
 "dev")
     compose_file="docker-compose.dev.yml"
     ;;
+"pro")
+    compose_file="docker-compose.pro.yml"
+    ;;
 "")
     docker compose -f docker-compose.dev.yml up -d --build
     ;;
