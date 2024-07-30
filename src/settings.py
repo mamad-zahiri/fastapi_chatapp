@@ -30,5 +30,8 @@ class Settings(BaseSettings):
     db_min_connection_count: int = config("db_max_connection_count", default=3, cast=int)
     db_uuid_representation: str = config("db_uuid_representation", default="standard")
 
+    # Redis
+    redis_host: str  = config("redis_host", default="redis")
+    redis_port: int  = config("redis_port", default=6379, cast=int)
 
 settings = Settings()

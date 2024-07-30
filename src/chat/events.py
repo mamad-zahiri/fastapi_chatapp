@@ -10,7 +10,8 @@ from src.settings import settings
 from src.utils.jwt import decode_jwt
 from src.utils.users import get_all_users
 
-redis_manager = socketio.AsyncRedisManager("redis://cache:6379")
+redis_uri = f"redis://{settings.redis_host}:{settings.redis_port}"
+redis_manager = socketio.AsyncRedisManager(redis_uri)
 
 sio = socketio.AsyncServer(
     cors_allowed_origins="*",
