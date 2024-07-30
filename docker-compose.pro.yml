@@ -2,6 +2,7 @@
 services:
   database:
     image: mongodb/mongodb-community-server:5.0-ubuntu2004
+    container_name: MongoDB
     restart: always
     ports:
       - 27017
@@ -9,32 +10,69 @@ services:
       MONGO_INITDB_ROOT_USERNAME: my_user
       MONGO_INITDB_ROOT_PASSWORD: my_safe_password
     networks:
-      - database
-  webserver:
-    image: nginx:stable-alpine3.19
-    ports:
-      - '80:80'
-      - '443:443'
-    networks:
-      - backend
-      - host
-  backend:
+      - internal_network
+
+  backend-0: &backend
+    container_name: backend-0
+    hostname: backend-0
     depends_on:
       - database
+      - redis
     build:
       context: .
     ports:
-      - 8080
+      - 8080:8080
     networks:
-      - database
-      - backend
+      - internal_network
+    volumes:
+      - .:/app
+    command: ["uvicorn", "--port", "8080", "--host", "0.0.0.0", "src.main:app"]
+    
+  backend-1: 
+    <<: *backend
+    container_name: backend-1
+    hostname: backend-1
+    ports:
+      - 8081:8080
+      
+  backend-2: 
+    <<: *backend
+    container_name: backend-2
+    hostname: backend-2
+    ports:
+      - 8082:8080
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.2.5
+    volumes:
+      - ./volumes/redis/:/data
+    ports:
+      - 6379:6379
+    networks:
+      - internal_network
+
+  webserver:
+    image: nginx:stable-alpine3.19
+    container_name: webserver
+    depends_on:
+      - backend-0
+      - backend-1
+      - backend-2
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - internal_network
+      - host_network
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
 networks:
-  database:
-    name: MongoDB
+  internal_network:
+    name: Internal network
     internal: true
-  backend:
-    name: Backend
-    internal: true
-  host:
-    name: Host
+  host_network:
+    name: Host network
     internal: false
