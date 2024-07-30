@@ -5,10 +5,10 @@ import socketio
 from src.auth.services import verify_token_service
 from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
 from src.chat.services.clients import online_users
+from src.chat.services.system import list_users_service
 from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
 from src.utils.jwt import decode_jwt
-from src.utils.users import get_all_users
 
 redis_uri = f"redis://{settings.redis_host}:{settings.redis_port}"
 redis_manager = socketio.AsyncRedisManager(redis_uri)
@@ -41,19 +41,7 @@ async def disconnect(sid):
 
 @sio.on("/system/list-users")
 async def system_list_users(sid):
-    # TODO 1: refactor and clean this function
-    # TODO 2: we need a logic to select which users to send
-    users = await get_all_users()
-
-    def dump(u):
-        return u.model_dump(
-            exclude=["password", "last_seen"],
-            mode="json",
-        )
-
-    users = list(map(dump, users))
-
-    return users
+    return await list_users_service()
 
 
 @sio.on("/system/list-online-users")
