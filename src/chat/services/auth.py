@@ -38,4 +38,5 @@ async def connection_service(sio: AsyncServer, sid: str, auth: dict[str, str]):
 
 async def disconnection_service(sio: AsyncServer, sid) -> EmailStr:
     email = (await sio.get_session(sid)).get("email")
+    online_users.pop(email)
     return email
