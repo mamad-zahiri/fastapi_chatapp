@@ -154,8 +154,8 @@ async def group_attach_group(sid, env):
 
 @sio.on("/system/list-groups")
 async def system_list_groups(sid, env):
-    # TODO: refactor and clean this function
-    if not verify_token_service(env["token"]):
+    user = await verify_user_service(env)
+    if user is None:
         return "invalid token"
 
     groups = await Group.find_all().to_list()
