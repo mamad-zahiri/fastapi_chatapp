@@ -6,7 +6,7 @@ from src.auth.services import verify_token_service
 from src.chat.services import private
 from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
 from src.chat.services.clients import online_users
-from src.chat.services.group import create_group_service
+from src.chat.services.group import create_group_service, join_group_service
 from src.chat.services.system import list_users_service
 from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
@@ -109,29 +109,23 @@ async def system_add_groups(sid, env):
 
 @sio.on("/system/join-group")
 async def group_join(sid, env):
-    # TODO: refactor and clean this function
     user = await verify_user_service(env)
-
     if user is None:
         return "invalid token"
 
     group = await Group.find_one(Group.name == env.get("group"))
-
     if group is None:
         return "group does not exists"
 
-    group_member = await GroupMember.find_one(GroupMember.group.id == group.id, GroupMember.member.id == user.id)
+    _group_member, joined = await join_group_service(group, user)
 
-    if group_member is not None:
-        return f"you are already a member of {group.name}"
-
-    group_member = GroupMember(group=group, member=user)
-    await group_member.save()
+    if not joined:
+        return f"you are already a member of {group.name} or can not join"
 
     await sio.enter_room(sid, group.id)
     await sio.emit("/group", data=f"user {user.email} joined group", room=group.id)
 
-    return "ok"
+    return f"you are joined to {group.name}"
 
 
 @sio.on("/group/attach-group")
