@@ -7,9 +7,9 @@ from src.chat.services.clients import online_users
 from src.chat.services.group import (
     create_group_message_service,
     create_group_service,
+    is_group_member,
     join_group_service,
     send_group_message_service,
-    is_group_member,
 )
 from src.chat.services.private import create_private_message_service, send_private_message_service
 from src.chat.services.system import list_users_service
