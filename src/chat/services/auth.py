@@ -8,7 +8,6 @@ from src.db.models import User
 from src.settings import settings
 from src.utils.chat import token_provided
 from src.utils.jwt import decode_jwt, token_expired
-from src.utils.users import find_user
 
 
 async def connection_service(sio: AsyncServer, sid: str, auth: dict[str, str]):
@@ -26,8 +25,7 @@ async def connection_service(sio: AsyncServer, sid: str, auth: dict[str, str]):
         settings.jwt_algorithm,
     )
 
-    user = await find_user(decoded_token["email"])
-
+    user = await User.find_one(User.email == decoded_token.get("email"))
     if user is None:
         raise ConnectionRefusedError()
 

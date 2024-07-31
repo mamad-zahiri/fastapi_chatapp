@@ -96,5 +96,5 @@ async def refresh_token_service(token: str) -> dict[str, str] | None:
     if decoded_token is None or jwt_util.token_expired(decoded_token):
         return None
 
-    user = await user_util.find_user(decoded_token["email"])
+    user = await User.find_one(User.email == decoded_token["email"])
     return generate_pair_token(user)
