@@ -3,10 +3,10 @@ from datetime import datetime
 import socketio
 
 from src.auth.services import verify_token_service
-from src.chat.services import private
 from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
 from src.chat.services.clients import online_users
 from src.chat.services.group import create_group_service, join_group_service
+from src.chat.services.private import create_private_message_service, send_private_message_service
 from src.chat.services.system import list_users_service
 from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
@@ -62,8 +62,8 @@ async def private_send_message(sid, env):
         timestamp=datetime.now(),
     )
 
-    payload = await private.create_message_service(msg)
-    return await private.send_message_service(sio, payload)
+    payload = await create_private_message_service(msg)
+    return await send_private_message_service(sio, payload)
 
 
 @sio.on("/private/list-new-messages")
