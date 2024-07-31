@@ -5,12 +5,16 @@ import socketio
 from src.auth.services import verify_token_service
 from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
 from src.chat.services.clients import online_users
-from src.chat.services.group import create_group_service, join_group_service
+from src.chat.services.group import (
+    create_group_message_service,
+    create_group_service,
+    join_group_service,
+    send_group_message_service,
+)
 from src.chat.services.private import create_private_message_service, send_private_message_service
 from src.chat.services.system import list_users_service
 from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
-from src.utils.jwt import decode_jwt
 
 redis_uri = f"redis://{settings.redis_host}:{settings.redis_port}"
 redis_manager = socketio.AsyncRedisManager(redis_uri)
@@ -165,39 +169,26 @@ async def system_list_groups(sid, env):
 
 @sio.on("/group/send-message")
 async def group_send_message(sid, env):
-    # TODO: refactor and clean this function
-    if not verify_token_service(env["token"]):
+    user = await verify_user_service(env)
+    if user is None:
         return "invalid token"
 
-    decoded_token = decode_jwt(
-        env["token"],
-        settings.jwt_access_secret_key,
-        settings.jwt_algorithm,
-    )
-
-    user = await User.find_one(User.email == decoded_token["email"])
     group = await Group.find_one(Group.name == env.get("group"))
+    if group is None:
+        return "group does not exists"
 
-    if user is None or group is None:
-        return "user or group does not exist"
-
-    group_member = await GroupMember.find_one(GroupMember.group.id == group.id, GroupMember.member.id == user.id)
-
-    if group_member is None:
-        return f"user {user.email} is not a member of {group.name}"
-
-    group_chat = GroupChat(
+    message = GroupChat(
         message=env.get("message"),
         receiver=group,
         sender=user,
         timestamp=datetime.now(),
     )
+    message, err = await create_group_message_service(message)
 
-    await group_chat.save()
+    if message is None:
+        return err
 
-    await sio.emit("/group/send-message", data=group_chat.model_dump(), room=group.id)
-
-    return group_chat.model_dump()
+    return await send_group_message_service(sio, message)
 
 
 @sio.on("/group/get-messages")
