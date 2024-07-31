@@ -6,6 +6,7 @@ from src.auth.services import verify_token_service
 from src.chat.services import private
 from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
 from src.chat.services.clients import online_users
+from src.chat.services.group import create_group_service
 from src.chat.services.system import list_users_service
 from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
@@ -93,17 +94,14 @@ async def private_list_old_messages(sid, env):
 
 @sio.on("/system/create-group")
 async def system_add_groups(sid, env):
-    # TODO: refactor and clean this function
     user = await verify_user_service(env)
 
     if user is None:
         return "invalid token"
 
-    group = await Group.find_one(Group.name == env.get("group"))
+    group, created = await create_group_service(env.get("group"), user)
 
-    if group is None:
-        group = Group(name=env.get("group"))
-        await group.save()
+    if created:
         return f"group {group.name} created"
 
     return f"group {group.name} already exists"
