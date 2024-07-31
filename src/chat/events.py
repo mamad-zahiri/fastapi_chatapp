@@ -67,7 +67,6 @@ async def private_send_message(sid, env):
 
 @sio.on("/private/list-new-messages")
 async def private_list_new_messages(sid, env):
-    # TODO: refactor and clean this function
     receiver = await verify_user_service(env)
 
     new_messages = await PrivateChat.find_many(
@@ -76,12 +75,11 @@ async def private_list_new_messages(sid, env):
         fetch_links=True,
     ).to_list()
 
-    return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), new_messages))
+    return list(map(lambda x: x.model_dump(), new_messages))
 
 
 @sio.on("/private/list-old-messages")
 async def private_list_old_messages(sid, env):
-    # TODO: refactor and clean this function
     receiver = await verify_user_service(env)
 
     old_messages = await PrivateChat.find_many(
@@ -90,7 +88,7 @@ async def private_list_old_messages(sid, env):
         fetch_links=True,
     ).to_list()
 
-    return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), old_messages))
+    return list(map(lambda x: x.model_dump(), old_messages))
 
 
 @sio.on("/system/create-group")
