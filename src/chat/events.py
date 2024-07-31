@@ -130,18 +130,18 @@ async def group_join(sid, env):
 
 @sio.on("/group/attach-group")
 async def group_attach_group(sid, env):
-    # TODO: refactor and clean this function
     user = await verify_user_service(env)
-
     if user is None:
         return "invalid token"
 
     group = await Group.find_one(Group.name == env.get("group"))
-
     if group is None:
         return "group does not exists"
 
-    group_member = await GroupMember.find_one(GroupMember.group.id == group.id, GroupMember.member.id == user.id)
+    group_member = await GroupMember.find_one(
+        GroupMember.group.id == group.id,
+        GroupMember.member.id == user.id,
+    )
 
     if group_member is None:
         return f"you are not member of {group.name}"
