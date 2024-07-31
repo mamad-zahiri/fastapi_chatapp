@@ -3,6 +3,7 @@ from datetime import datetime
 import socketio
 
 from src.auth.services import verify_token_service
+from src.chat.services import private
 from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
 from src.chat.services.clients import online_users
 from src.chat.services.system import list_users_service
@@ -18,13 +19,6 @@ sio = socketio.AsyncServer(
     async_mode="asgi",
     client_manager=redis_manager,
 )
-
-
-async def get_receiver_and_status(email: str) -> tuple[User | dict, bool]:
-    sid = online_users.get(email)
-    user = await User.find_one(User.email == email)
-
-    return user, sid
 
 
 @sio.on("connect")
@@ -51,33 +45,24 @@ async def system_list_online_users(sid):
 
 @sio.on("/private/chat")
 async def private_chat(sid, env):
-    # TODO: refactor and clean this function
     sender = await verify_user_service(env)
+    if sender is None:
+        return "invalid token"
 
-    receiver, sid = await get_receiver_and_status(env["receiver"])
-
+    receiver = await User.find_one(User.email == env.get("receiver"))
     if receiver is None:
         return "invalid receiver"
 
-    payload = PrivateChat(
-        timestamp=datetime.now(),
-        message=env["message"],
+    msg = PrivateChat(
         sender=sender,
         receiver=receiver,
+        file=env.get("file_link"),
+        message=env.get("message"),
+        timestamp=datetime.now(),
     )
 
-    to_send = payload.model_dump(exclude=["id"])
-
-    if sid is not None:
-        await sio.emit(
-            "/private/chat",
-            to_send,
-            to=sid,
-        )
-
-    await payload.save()
-
-    return to_send
+    payload = await private.create_message_service(msg)
+    return await private.send_message_service(sio, payload)
 
 
 @sio.on("/private/list-new-chats")
