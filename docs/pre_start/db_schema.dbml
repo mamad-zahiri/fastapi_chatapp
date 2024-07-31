@@ -1,0 +1,45 @@
+Project "ChatRoom" {
+  Note: 'Database schema of ChatRoom api project'
+  DataBaseType: 'MongoDB'
+  Domain: ''
+  version: '1.0.0'
+}
+
+Table User {
+  id uuid [pk]
+  email varchar [unique]
+  email_verified bool [default: false]
+  first_name varchar
+  last_name varchar
+  password varchar
+  last_seen datetime
+}
+
+Table PVChat {
+    id uuid [pk]
+    sender uuid [ref: > User.id]
+    message text
+    file varchar
+    date datetime
+    to uuid [ref: > User.id]
+}
+
+Table Group {
+    id uuid [pk]
+    name text
+    created_at datetime
+}
+
+Table GroupMember {
+    user uuid [ref: > User.id]
+    group uuid [ref:> Group.id]
+}
+
+Table GroupChat {
+    id uuid [pk]
+    sender uuid [ref: > User.id]
+    message text
+    file varchar
+    date datetime
+    to uuid [ref: > Group.id]
+}
