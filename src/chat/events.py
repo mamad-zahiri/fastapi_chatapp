@@ -43,8 +43,8 @@ async def system_list_online_users(sid):
     return list(online_users.all().keys())
 
 
-@sio.on("/private/chat")
-async def private_chat(sid, env):
+@sio.on("/private/send_message")
+async def private_send_message(sid, env):
     sender = await verify_user_service(env)
     if sender is None:
         return "invalid token"
@@ -65,32 +65,32 @@ async def private_chat(sid, env):
     return await private.send_message_service(sio, payload)
 
 
-@sio.on("/private/list-new-chats")
-async def private_list_new_chats(sid, env):
+@sio.on("/private/list-new-messages")
+async def private_list_new_messages(sid, env):
     # TODO: refactor and clean this function
     receiver = await verify_user_service(env)
 
-    new_chats = await PrivateChat.find_many(
+    new_messages = await PrivateChat.find_many(
         PrivateChat.receiver.id == receiver.id,
         PrivateChat.seen == False,
         fetch_links=True,
     ).to_list()
 
-    return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), new_chats))
+    return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), new_messages))
 
 
-@sio.on("/private/list-chats")
-async def private_list_chats(sid, env):
+@sio.on("/private/list-old-messages")
+async def private_list_old_messages(sid, env):
     # TODO: refactor and clean this function
     receiver = await verify_user_service(env)
 
-    old_chats = await PrivateChat.find_many(
+    old_messages = await PrivateChat.find_many(
         PrivateChat.receiver.id == receiver.id,
         PrivateChat.seen == True,
         fetch_links=True,
     ).to_list()
 
-    return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), old_chats))
+    return list(map(lambda x: x.model_dump(exclude=["receiver", "seen"]), old_messages))
 
 
 @sio.on("/system/create-group")
