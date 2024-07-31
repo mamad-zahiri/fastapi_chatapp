@@ -2,7 +2,6 @@ from datetime import datetime
 
 import socketio
 
-from src.auth.services import verify_token_service
 from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
 from src.chat.services.clients import online_users
 from src.chat.services.group import (
@@ -10,6 +9,7 @@ from src.chat.services.group import (
     create_group_service,
     join_group_service,
     send_group_message_service,
+    is_group_member,
 )
 from src.chat.services.private import create_private_message_service, send_private_message_service
 from src.chat.services.system import list_users_service
@@ -193,19 +193,15 @@ async def group_send_message(sid, env):
 
 @sio.on("/group/get-messages")
 async def group_get_messages(sid, env):
-    # TODO: refactor and clean this function
-    if not verify_token_service(env["token"]):
+    user = await verify_user_service(env)
+    if user is None:
         return "invalid token"
 
-    user = await verify_user_service(env)
     group = await Group.find_one(Group.name == env.get("group"))
+    if group is None:
+        return "group does not exists"
 
-    if user is None or group is None:
-        return "user or group does not exist"
-
-    group_member = await GroupMember.find_one(GroupMember.group.id == group.id, GroupMember.member.id == user.id)
-
-    if group_member is None:
+    if not is_group_member(group, user):
         return f"user {user.email} is not a member of {group.name}"
 
     group_messages = await GroupChat.find_many(GroupChat.receiver.id == group.id).to_list()
