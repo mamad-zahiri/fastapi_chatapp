@@ -2,7 +2,11 @@ from datetime import datetime
 
 import socketio
 
-from src.chat.services.auth import connection_service, disconnection_service, verify_user_service
+from src.chat.services.auth import (
+    connection_service,
+    disconnection_service,
+    verify_user_service,
+)
 from src.chat.services.clients import online_users
 from src.chat.services.group import (
     create_group_message_service,
@@ -11,8 +15,11 @@ from src.chat.services.group import (
     join_group_service,
     send_group_message_service,
 )
-from src.chat.services.private import create_private_message_service, send_private_message_service
-from src.chat.services.system import list_users_service
+from src.chat.services.private import (
+    create_private_message_service,
+    send_private_message_service,
+)
+from src.chat.services.system import list_users_service, search_users_service
 from src.db.models import Group, GroupChat, GroupMember, PrivateChat, User
 from src.settings import settings
 
@@ -41,6 +48,12 @@ async def disconnect(sid):
 @sio.on("/system/list-users")
 async def system_list_users(sid):
     return await list_users_service()
+
+
+@sio.on("/system/search-users")
+async def system_search_users(sid, env):
+    print(env)
+    return await search_users_service(env.get("q"))
 
 
 @sio.on("/system/list-online-users")
@@ -167,6 +180,12 @@ async def system_list_groups(sid, env):
     return list(map(lambda x: x.model_dump(), groups))
 
 
+@sio.on("/system/search-groups")
+async def system_search_groups(sid, env):
+    print(env)
+    return await search_users_service(env.get("q"))
+
+
 @sio.on("/group/send-message")
 async def group_send_message(sid, env):
     user = await verify_user_service(env)
@@ -204,6 +223,8 @@ async def group_get_messages(sid, env):
     if not is_group_member(group, user):
         return f"user {user.email} is not a member of {group.name}"
 
-    group_messages = await GroupChat.find_many(GroupChat.receiver.id == group.id).to_list()
+    group_messages = await GroupChat.find_many(
+        GroupChat.receiver.id == group.id
+    ).to_list()
 
     return list(map(lambda x: x.model_dump(), group_messages))
